@@ -4,7 +4,8 @@ import TextEditor from '../components/apps/TextEditor';
 import Terminal from '../components/apps/Terminal';
 import Settings from '../components/apps/Settings';
 import Browser from '../components/apps/Browser';
-import { AiFillFolder, AiFillEdit, AiFillCode, AiFillSetting, AiOutlineGlobal } from 'react-icons/ai';
+import ChatGPT from '../components/apps/ChatGPT';
+import { AiFillFolder, AiFillEdit, AiFillCode, AiFillSetting, AiOutlineGlobal, AiOutlineRobot } from 'react-icons/ai';
 
 export const registerApps = (registerApp: (app: App) => void) => {
   registerApp({
@@ -45,6 +46,14 @@ export const registerApps = (registerApp: (app: App) => void) => {
     icon: <AiOutlineGlobal className="text-2xl" />,
     component: Browser,
     defaultSize: { width: 1000, height: 700 },
+  });
+
+  registerApp({
+    id: 'chatgpt',
+    name: 'ChatGPT',
+    icon: <AiOutlineRobot className="text-2xl" />,
+    component: ChatGPT,
+    defaultSize: { width: 800, height: 700 },
   });
 };
 

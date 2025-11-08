@@ -4,7 +4,7 @@ import { useSettingsStore } from '../stores';
 export default function Dock() {
   const { apps, addWindow, windows } = useAppStore();
   const { settings } = useSettingsStore();
-  const dockApps = apps.filter(app => ['finder', 'texteditor', 'terminal', 'settings', 'browser'].includes(app.id));
+  const dockApps = apps.filter(app => ['finder', 'texteditor', 'terminal', 'settings', 'browser', 'chatgpt'].includes(app.id));
 
   const handleAppClick = (appId: string, appName: string) => {
     addWindow(appId, appName);
