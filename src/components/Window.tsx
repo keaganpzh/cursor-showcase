@@ -1,94 +1,88 @@
 import { Rnd } from 'react-rnd';
-import { WindowState } from '../types';
-import { useAppStore } from '../stores';
+import { X, Minus, Maximize2 } from 'lucide-react';
+import { useWindowStore } from '@/store/useWindowStore';
+import { ReactNode } from 'react';
 
 interface WindowProps {
-  window: WindowState;
+  windowId: string;
+  children: ReactNode;
 }
 
-export default function Window({ window: windowState }: WindowProps) {
-  const { closeWindow, updateWindow, setActiveWindow, minimizeWindow, maximizeWindow } = useAppStore();
-  const app = useAppStore.getState().apps.find(a => a.id === windowState.appId);
-  const AppComponent = app?.component;
+export default function Window({ windowId, children }: WindowProps) {
+  const { getWindow, updateWindow, removeWindow, focusWindow, minimizeWindow, maximizeWindow } = useWindowStore();
+  const windowState = getWindow(windowId);
 
-  if (!AppComponent) return null;
+  if (!windowState || windowState.isMinimized) return null;
 
-  const handleDragStart = () => {
-    setActiveWindow(windowState.id);
+  const handleDragStop = (_e: unknown, data: { x: number; y: number }) => {
+    updateWindow(windowId, { x: data.x, y: data.y });
   };
 
-  const handleResizeStop = (_e: any, _direction: any, ref: HTMLElement) => {
-    updateWindow(windowState.id, {
+  const handleResizeStop = (
+    _e: unknown,
+    _direction: unknown,
+    ref: HTMLElement,
+    _delta: unknown,
+    position: { x: number; y: number }
+  ) => {
+    updateWindow(windowId, {
       width: ref.offsetWidth,
       height: ref.offsetHeight,
+      x: position.x,
+      y: position.y,
     });
   };
-
-  const handleDragStop = (_e: any, d: { x: number; y: number }) => {
-    updateWindow(windowState.id, {
-      x: d.x,
-      y: d.y,
-    });
-  };
-
-  if (windowState.minimized) {
-    return null;
-  }
-
-  const windowStyle = windowState.maximized
-    ? {
-        x: 0,
-        y: 24,
-        width: window.innerWidth,
-        height: window.innerHeight - 24 - 80,
-      }
-    : {
-        x: windowState.x,
-        y: windowState.y,
-        width: windowState.width,
-        height: windowState.height,
-      };
 
   return (
     <Rnd
-      size={{ width: windowStyle.width, height: windowStyle.height }}
-      position={{ x: windowStyle.x, y: windowStyle.y }}
-      onDragStart={handleDragStart}
+      position={{ x: windowState.x, y: windowState.y }}
+      size={{ width: windowState.width, height: windowState.height }}
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
       minWidth={400}
       minHeight={300}
       bounds="parent"
-      disableResizing={windowState.maximized}
+      dragHandleClassName="window-drag-handle"
       style={{ zIndex: windowState.zIndex }}
-      className="window-container"
+      onMouseDown={() => focusWindow(windowId)}
+      disableDragging={windowState.isMaximized}
+      enableResizing={!windowState.isMaximized}
     >
-      <div
-        className="w-full h-full bg-white rounded-t-lg shadow-2xl flex flex-col overflow-hidden"
-        onClick={() => setActiveWindow(windowState.id)}
-      >
-        <div className="bg-gray-200 h-8 flex items-center justify-between px-3 rounded-t-lg border-b border-gray-300">
-          <div className="flex items-center gap-2">
+      <div className="h-full bg-white dark:bg-gray-900 rounded-lg shadow-2xl overflow-hidden flex flex-col">
+        <div className="window-drag-handle h-10 bg-gray-100 dark:bg-gray-800 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700 cursor-move">
+          <div className="flex gap-2">
             <button
-              onClick={() => closeWindow(windowState.id)}
               className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-            />
+              onClick={() => removeWindow(windowId)}
+              aria-label="Close"
+            >
+              <X size={8} className="text-red-900 opacity-0 hover:opacity-100 m-auto" />
+            </button>
             <button
-              onClick={() => minimizeWindow(windowState.id)}
               className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
-            />
+              onClick={() => minimizeWindow(windowId)}
+              aria-label="Minimize"
+            >
+              <Minus size={8} className="text-yellow-900 opacity-0 hover:opacity-100 m-auto" />
+            </button>
             <button
-              onClick={() => maximizeWindow(windowState.id)}
               className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
-            />
+              onClick={() => maximizeWindow(windowId)}
+              aria-label="Maximize"
+            >
+              <Maximize2 size={8} className="text-green-900 opacity-0 hover:opacity-100 m-auto" />
+            </button>
           </div>
-          <div className="flex-1 text-center text-sm font-medium text-gray-700">
+
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {windowState.title}
           </div>
-          <div className="w-16" />
+
+          <div className="w-12" />
         </div>
-        <div className="flex-1 overflow-auto bg-white">
-          <AppComponent />
+
+        <div className="flex-1 overflow-hidden">
+          {children}
         </div>
       </div>
     </Rnd>

@@ -1,179 +1,198 @@
 import { useState, useRef, useEffect } from 'react';
-import { useFileSystemStore } from '../../stores';
+import { getFilesByParent, createFile, getFileById } from '@/db/fileSystem';
+import { FileSystemItem } from '@/types';
 
-interface Command {
-  command: string;
-  output: string;
+interface TerminalProps {
+  windowId: string;
 }
 
-export default function Terminal() {
-  const { nodes, getChildren, getNode, createNode, updateFileContent } = useFileSystemStore();
-  const [commands, setCommands] = useState<Command[]>([
-    { command: '', output: 'Welcome to WebOS Terminal\nType "help" for available commands.' },
+interface TerminalLine {
+  type: 'command' | 'output' | 'error';
+  content: string;
+}
+
+export default function Terminal({ windowId }: TerminalProps) {
+  const [lines, setLines] = useState<TerminalLine[]>([
+    { type: 'output', content: 'WebOS Terminal v1.0' },
+    { type: 'output', content: 'Type "help" for available commands' },
   ]);
-  const [currentPath, setCurrentPath] = useState<string[]>(['home']);
-  const [input, setInput] = useState('');
+  const [currentCommand, setCurrentCommand] = useState('');
+  const [currentPath, setCurrentPath] = useState<string>('home');
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const outputRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [commands]);
-
-  const getCurrentFolderId = () => currentPath[currentPath.length - 1] || 'home';
+  }, [lines]);
 
   const executeCommand = async (cmd: string) => {
-    const [command, ...args] = cmd.trim().split(' ');
-    let output = '';
+    const trimmedCmd = cmd.trim();
+    if (!trimmedCmd) return;
 
-    switch (command.toLowerCase()) {
-      case 'ls':
-        const children = getChildren(getCurrentFolderId());
-        output = children.length === 0 
-          ? 'Empty directory' 
-          : children.map(n => `${n.type === 'folder' ? '📁' : '📄'} ${n.name}`).join('\n');
-        break;
+    setLines(prev => [...prev, { type: 'command', content: `$ ${trimmedCmd}` }]);
+    setCommandHistory(prev => [...prev, trimmedCmd]);
 
-      case 'cd':
-        if (args.length === 0) {
-          setCurrentPath(['home']);
-          output = 'Changed to home directory';
-        } else {
-          const targetName = args[0];
-          const folderChildren = getChildren(getCurrentFolderId());
-          const target = folderChildren.find(n => n.name === targetName && n.type === 'folder');
-          if (target) {
-            setCurrentPath([...currentPath, target.id]);
-            output = `Changed to ${targetName}`;
+    const [command, ...args] = trimmedCmd.split(' ');
+
+    try {
+      switch (command) {
+        case 'help':
+          setLines(prev => [...prev, 
+            { type: 'output', content: 'Available commands:' },
+            { type: 'output', content: '  ls           - List files in current directory' },
+            { type: 'output', content: '  cd <dir>     - Change directory' },
+            { type: 'output', content: '  pwd          - Print working directory' },
+            { type: 'output', content: '  touch <file> - Create a new file' },
+            { type: 'output', content: '  cat <file>   - Display file contents' },
+            { type: 'output', content: '  echo <text>  - Print text to console' },
+            { type: 'output', content: '  clear        - Clear terminal screen' },
+            { type: 'output', content: '  help         - Show this help message' },
+          ]);
+          break;
+
+        case 'ls':
+          const items = await getFilesByParent(currentPath);
+          if (items.length === 0) {
+            setLines(prev => [...prev, { type: 'output', content: '(empty directory)' }]);
           } else {
-            output = `cd: no such file or directory: ${targetName}`;
+            items.forEach(item => {
+              const icon = item.type === 'folder' ? '📁' : '📄';
+              setLines(prev => [...prev, { type: 'output', content: `${icon} ${item.name}` }]);
+            });
           }
-        }
-        break;
+          break;
 
-      case 'pwd':
-        const pathNames = currentPath.map(id => {
-          const node = getNode(id);
-          return node?.name || id;
-        });
-        output = '/' + pathNames.join('/');
-        break;
+        case 'pwd':
+          const currentFolder = await getFileById(currentPath);
+          setLines(prev => [...prev, { type: 'output', content: `/${currentFolder?.name || 'root'}` }]);
+          break;
 
-      case 'echo':
-        output = args.join(' ');
-        break;
-
-      case 'touch':
-        if (args.length > 0) {
-          const fileName = args[0];
-          await createNode(fileName, 'file', getCurrentFolderId());
-          output = `Created file: ${fileName}`;
-        } else {
-          output = 'touch: missing file operand';
-        }
-        break;
-
-      case 'mkdir':
-        if (args.length > 0) {
-          const folderName = args[0];
-          await createNode(folderName, 'folder', getCurrentFolderId());
-          output = `Created directory: ${folderName}`;
-        } else {
-          output = 'mkdir: missing operand';
-        }
-        break;
-
-      case 'cat':
-        if (args.length > 0) {
-          const fileName = args[0];
-          const fileChildren = getChildren(getCurrentFolderId());
-          const file = fileChildren.find(n => n.name === fileName && n.type === 'file');
-          if (file) {
-            output = file.content || '(empty file)';
+        case 'cd':
+          if (!args[0]) {
+            setCurrentPath('home');
+            setLines(prev => [...prev, { type: 'output', content: 'Changed to home directory' }]);
+          } else if (args[0] === '..') {
+            const current = await getFileById(currentPath);
+            if (current?.parentId) {
+              setCurrentPath(current.parentId);
+              setLines(prev => [...prev, { type: 'output', content: 'Changed to parent directory' }]);
+            } else {
+              setLines(prev => [...prev, { type: 'error', content: 'Already at root directory' }]);
+            }
           } else {
-            output = `cat: ${fileName}: No such file or directory`;
+            const items = await getFilesByParent(currentPath);
+            const folder = items.find(item => item.name === args[0] && item.type === 'folder');
+            if (folder) {
+              setCurrentPath(folder.id);
+              setLines(prev => [...prev, { type: 'output', content: `Changed to ${folder.name}` }]);
+            } else {
+              setLines(prev => [...prev, { type: 'error', content: `Directory not found: ${args[0]}` }]);
+            }
           }
-        } else {
-          output = 'cat: missing file operand';
-        }
-        break;
+          break;
 
-      case 'clear':
-        setCommands([]);
-        return;
+        case 'touch':
+          if (!args[0]) {
+            setLines(prev => [...prev, { type: 'error', content: 'Usage: touch <filename>' }]);
+          } else {
+            await createFile(args[0], currentPath, '', 'file');
+            setLines(prev => [...prev, { type: 'output', content: `Created file: ${args[0]}` }]);
+          }
+          break;
 
-      case 'help':
-        output = `Available commands:
-  ls          - List directory contents
-  cd <dir>    - Change directory
-  pwd         - Print working directory
-  echo <text> - Print text
-  touch <file>- Create a file
-  mkdir <dir> - Create a directory
-  cat <file>  - Display file contents
-  clear       - Clear terminal
-  help        - Show this help message`;
-        break;
+        case 'cat':
+          if (!args[0]) {
+            setLines(prev => [...prev, { type: 'error', content: 'Usage: cat <filename>' }]);
+          } else {
+            const items = await getFilesByParent(currentPath);
+            const file = items.find(item => item.name === args[0] && item.type === 'file');
+            if (file) {
+              setLines(prev => [...prev, { type: 'output', content: file.content || '(empty file)' }]);
+            } else {
+              setLines(prev => [...prev, { type: 'error', content: `File not found: ${args[0]}` }]);
+            }
+          }
+          break;
 
-      case '':
-        output = '';
-        break;
+        case 'echo':
+          setLines(prev => [...prev, { type: 'output', content: args.join(' ') }]);
+          break;
 
-      default:
-        output = `Command not found: ${command}. Type "help" for available commands.`;
-    }
+        case 'clear':
+          setLines([]);
+          break;
 
-    setCommands([...commands, { command: cmd, output }]);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      executeCommand(input);
-      setInput('');
-    } else {
-      setCommands([...commands, { command: '', output: '' }]);
+        default:
+          setLines(prev => [...prev, { type: 'error', content: `Command not found: ${command}. Type "help" for available commands.` }]);
+      }
+    } catch (error) {
+      setLines(prev => [...prev, { type: 'error', content: `Error: ${error}` }]);
     }
   };
 
-  const getPrompt = () => {
-    const currentFolder = getNode(getCurrentFolderId());
-    return `user@webos:${currentFolder?.name || 'home'}$ `;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      executeCommand(currentCommand);
+      setCurrentCommand('');
+      setHistoryIndex(-1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex = historyIndex === -1 
+          ? commandHistory.length - 1 
+          : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        setCurrentCommand(commandHistory[newIndex]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const newIndex = historyIndex + 1;
+        if (newIndex >= commandHistory.length) {
+          setHistoryIndex(-1);
+          setCurrentCommand('');
+        } else {
+          setHistoryIndex(newIndex);
+          setCurrentCommand(commandHistory[newIndex]);
+        }
+      }
+    }
   };
 
   return (
-    <div className="h-full flex flex-col bg-black text-green-400 font-mono text-sm">
-      <div ref={outputRef} className="flex-1 overflow-auto p-4">
-        {commands.map((cmd, idx) => (
-          <div key={idx} className="mb-2">
-            {cmd.command && (
-              <div className="text-white">
-                <span className="text-green-400">{getPrompt()}</span>
-                {cmd.command}
-              </div>
-            )}
-            {cmd.output && (
-              <div className="mt-1 whitespace-pre-wrap">{cmd.output}</div>
-            )}
-          </div>
-        ))}
-        <form onSubmit={handleSubmit} className="flex items-center">
-          <span className="text-green-400">{getPrompt()}</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="flex-1 bg-transparent text-white outline-none border-none"
-            autoFocus
-          />
-        </form>
+    <div 
+      className="h-full bg-gray-900 text-green-400 p-4 font-mono text-sm overflow-auto"
+      ref={containerRef}
+      onClick={() => inputRef.current?.focus()}
+    >
+      {lines.map((line, index) => (
+        <div 
+          key={index}
+          className={`mb-1 ${
+            line.type === 'command' ? 'text-white font-semibold' :
+            line.type === 'error' ? 'text-red-400' :
+            'text-green-400'
+          }`}
+        >
+          {line.content}
+        </div>
+      ))}
+      
+      <div className="flex items-center gap-2 text-white">
+        <span className="text-blue-400">$</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={currentCommand}
+          onChange={(e) => setCurrentCommand(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1 bg-transparent outline-none text-white"
+          autoFocus
+        />
       </div>
     </div>
   );

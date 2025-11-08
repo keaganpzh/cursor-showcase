@@ -1,188 +1,169 @@
-import { useState, useEffect } from 'react';
-import { useFileSystemStore } from '../../stores';
-import { FileSystemNode } from '../../types';
+import { useEffect, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { Folder, File, ArrowLeft, Home, Trash2 } from 'lucide-react';
+import { getFilesByParent, createFile, deleteFile, updateFile, getFileById } from '@/db/fileSystem';
+import { FileSystemItem } from '@/types';
 
-export default function Finder() {
-  const { nodes, getChildren, getNode, createNode, deleteNode, renameNode, currentPath, navigateTo } = useFileSystemStore();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [newName, setNewName] = useState('');
-  const [draggedId, setDraggedId] = useState<string | null>(null);
+interface FinderProps {
+  windowId: string;
+}
+
+export default function Finder({ windowId }: FinderProps) {
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>('home');
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState<'file' | 'folder' | null>(null);
+  const [newItemName, setNewItemName] = useState('');
+
+  const items = useLiveQuery(
+    () => getFilesByParent(currentFolderId),
+    [currentFolderId]
+  );
+
+  const currentFolder = useLiveQuery(
+    () => currentFolderId ? getFileById(currentFolderId) : Promise.resolve(null),
+    [currentFolderId]
+  );
 
   useEffect(() => {
-    if (currentPath.length === 0) {
-      navigateTo(['home']);
-    }
-  }, [currentPath, navigateTo]);
+    setSelectedItem(null);
+  }, [currentFolderId]);
 
-  const currentFolderId = currentPath[currentPath.length - 1] || 'home';
-  const currentFolder = getNode(currentFolderId);
-  const children = getChildren(currentFolderId);
-
-  const handleDoubleClick = (node: FileSystemNode) => {
-    if (node.type === 'folder') {
-      navigateTo([...currentPath, node.id]);
-    } else {
-      const { addWindow } = require('../../stores').useAppStore.getState();
-      addWindow('texteditor', node.name);
+  const handleItemDoubleClick = (item: FileSystemItem) => {
+    if (item.type === 'folder') {
+      setCurrentFolderId(item.id);
     }
   };
 
-  const handleCreateFolder = async () => {
-    const name = prompt('Folder name:');
-    if (name) {
-      await createNode(name, 'folder', currentFolderId);
+  const handleBack = () => {
+    if (currentFolder?.parentId !== undefined) {
+      setCurrentFolderId(currentFolder.parentId);
     }
   };
 
-  const handleCreateFile = async () => {
-    const name = prompt('File name:');
-    if (name) {
-      await createNode(name, 'file', currentFolderId);
+  const handleCreateItem = async () => {
+    if (newItemName.trim() && isCreating) {
+      await createFile(newItemName, currentFolderId || 'home', '', isCreating);
+      setNewItemName('');
+      setIsCreating(null);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      await deleteNode(id);
+  const handleDeleteItem = async () => {
+    if (selectedItem) {
+      await deleteFile(selectedItem);
+      setSelectedItem(null);
     }
   };
 
-  const handleRename = (node: FileSystemNode) => {
-    setRenamingId(node.id);
-    setNewName(node.name);
-  };
-
-  const saveRename = async () => {
-    if (renamingId && newName.trim()) {
-      await renameNode(renamingId, newName.trim());
-      setRenamingId(null);
-      setNewName('');
-    }
-  };
-
-  const handleDragStart = (e: React.DragEvent, nodeId: string) => {
-    setDraggedId(nodeId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = async (e: React.DragEvent, targetFolderId: string) => {
-    e.preventDefault();
-    if (draggedId) {
-      const draggedNode = getNode(draggedId);
-      if (draggedNode && draggedNode.parentId !== targetFolderId) {
-        await deleteNode(draggedId);
-        await createNode(draggedNode.name, draggedNode.type, targetFolderId);
-        if (draggedNode.type === 'file' && draggedNode.content) {
-          const newNodes = useFileSystemStore.getState().nodes;
-          const newNode = newNodes.find(n => n.name === draggedNode.name && n.parentId === targetFolderId);
-          if (newNode) {
-            await useFileSystemStore.getState().updateFileContent(newNode.id, draggedNode.content);
-          }
-        }
-      }
-      setDraggedId(null);
-    }
-  };
-
-  const goBack = () => {
-    if (currentPath.length > 0) {
-      navigateTo(currentPath.slice(0, -1));
-    }
+  const handleRename = async (itemId: string, newName: string) => {
+    await updateFile(itemId, { name: newName });
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      <div className="bg-gray-100 border-b border-gray-300 p-2 flex items-center gap-2">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-900">
+      <div className="flex items-center gap-2 p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <button
-          onClick={goBack}
-          disabled={currentPath.length === 0}
-          className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleBack}
+          disabled={!currentFolder?.parentId && currentFolder?.parentId !== null}
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          ← Back
+          <ArrowLeft size={18} />
         </button>
-        <div className="flex-1 text-sm text-gray-600">
-          {currentPath.map((id, idx) => {
-            const node = getNode(id);
-            return (
-              <span key={id}>
-                {node?.name || id}
-                {idx < currentPath.length - 1 && ' / '}
-              </span>
-            );
-          })}
+        <button
+          onClick={() => setCurrentFolderId('home')}
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+        >
+          <Home size={18} />
+        </button>
+        <div className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+          {currentFolder?.name || 'Root'}
         </div>
         <button
-          onClick={handleCreateFolder}
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          onClick={() => setIsCreating('folder')}
+          className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           New Folder
         </button>
         <button
-          onClick={handleCreateFile}
-          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+          onClick={() => setIsCreating('file')}
+          className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           New File
         </button>
+        {selectedItem && (
+          <button
+            onClick={handleDeleteItem}
+            className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-red-600"
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
       </div>
+
       <div className="flex-1 overflow-auto p-4">
-        <div className="grid grid-cols-6 gap-4">
-          {children.map((node) => (
+        {isCreating && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <input
+              type="text"
+              value={newItemName}
+              onChange={(e) => setNewItemName(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleCreateItem()}
+              placeholder={`Enter ${isCreating} name...`}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              autoFocus
+            />
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={handleCreateItem}
+                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => {
+                  setIsCreating(null);
+                  setNewItemName('');
+                }}
+                className="px-3 py-1 bg-gray-300 dark:bg-gray-700 rounded text-sm hover:bg-gray-400 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-4 gap-4">
+          {items?.map((item) => (
             <div
-              key={node.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, node.id)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, currentFolderId)}
-              className={`flex flex-col items-center p-3 rounded-lg cursor-pointer transition-colors ${
-                selectedId === node.id ? 'bg-blue-100' : 'hover:bg-gray-100'
+              key={item.id}
+              className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                selectedItem === item.id
+                  ? 'bg-blue-100 dark:bg-blue-900/30'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
-              onClick={() => setSelectedId(node.id)}
-              onDoubleClick={() => handleDoubleClick(node)}
+              onClick={() => setSelectedItem(item.id)}
+              onDoubleClick={() => handleItemDoubleClick(item)}
             >
-              <div className="text-4xl mb-2">
-                {node.type === 'folder' ? '📁' : '📄'}
+              <div className="flex flex-col items-center gap-2">
+                {item.type === 'folder' ? (
+                  <Folder size={48} className="text-blue-500" />
+                ) : (
+                  <File size={48} className="text-gray-500" />
+                )}
+                <span className="text-sm text-center break-words w-full text-gray-800 dark:text-gray-200">
+                  {item.name}
+                </span>
               </div>
-              {renamingId === node.id ? (
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onBlur={saveRename}
-                  onKeyDown={(e) => e.key === 'Enter' && saveRename()}
-                  className="text-xs text-center border border-blue-500 rounded px-1"
-                  autoFocus
-                />
-              ) : (
-                <div className="text-xs text-center break-words max-w-full">
-                  {node.name}
-                </div>
-              )}
             </div>
           ))}
         </div>
+
+        {items?.length === 0 && !isCreating && (
+          <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+            This folder is empty
+          </div>
+        )}
       </div>
-      {selectedId && (
-        <div className="border-t border-gray-300 p-2 bg-gray-100 flex gap-2">
-          <button
-            onClick={() => handleRename(getNode(selectedId)!)}
-            className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50"
-          >
-            Rename
-          </button>
-          <button
-            onClick={() => handleDelete(selectedId)}
-            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            Delete
-          </button>
-        </div>
-      )}
     </div>
   );
 }

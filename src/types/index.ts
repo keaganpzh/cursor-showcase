@@ -1,3 +1,15 @@
+export type FileType = 'file' | 'folder';
+
+export interface FileSystemItem {
+  id: string;
+  name: string;
+  type: FileType;
+  parentId: string | null;
+  content?: string;
+  createdAt: Date;
+  modifiedAt: Date;
+}
+
 export interface WindowState {
   id: string;
   appId: string;
@@ -6,33 +18,22 @@ export interface WindowState {
   y: number;
   width: number;
   height: number;
-  minimized: boolean;
-  maximized: boolean;
+  isMinimized: boolean;
+  isMaximized: boolean;
   zIndex: number;
+  data?: Record<string, unknown>;
 }
 
-export interface App {
+export interface Application {
   id: string;
   name: string;
   icon: string;
-  component: React.ComponentType;
-  defaultSize?: { width: number; height: number };
-  defaultPosition?: { x: number; y: number };
+  component: string;
 }
 
-export interface FileSystemNode {
-  id: string;
-  name: string;
-  type: 'file' | 'folder';
-  parentId: string | null;
-  content?: string;
-  createdAt: number;
-  modifiedAt: number;
-}
-
-export interface Settings {
+export interface OSSettings {
   wallpaper: string;
-  darkMode: boolean;
+  isDarkMode: boolean;
   dockSize: number;
 }
 

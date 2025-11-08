@@ -1,30 +1,17 @@
-export default function Browser() {
+import { WifiOff } from 'lucide-react';
+
+interface BrowserProps {
+  windowId: string;
+}
+
+export default function Browser({ windowId }: BrowserProps) {
   return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="bg-gray-100 border-b border-gray-300 p-3 flex items-center gap-2">
-        <button className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50">
-          ←
-        </button>
-        <button className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50">
-          →
-        </button>
-        <button className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50">
-          ↻
-        </button>
-        <div className="flex-1 bg-white border border-gray-300 rounded px-3 py-1 text-sm">
-          webos://localhost
-        </div>
-      </div>
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🌐</div>
-          <h2 className="text-2xl font-bold mb-2">No Internet Connection</h2>
-          <p className="text-gray-600">
-            This is a simulated browser environment.<br />
-            Internet access is not available in WebOS Simulator.
-          </p>
-        </div>
-      </div>
+    <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+      <WifiOff size={64} className="text-gray-400 mb-4" />
+      <h2 className="text-2xl font-semibold mb-2">No Internet Connection</h2>
+      <p className="text-gray-600 dark:text-gray-400">
+        This is a simulated browser environment
+      </p>
     </div>
   );
 }

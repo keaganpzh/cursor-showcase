@@ -1,86 +1,186 @@
-# WebOS Simulator
+# WebOS Simulator - MacOS-Style Desktop Environment
 
-A browser-based macOS-style desktop environment simulator built with React, TypeScript, and TailwindCSS.
+A fully interactive, browser-based simulation of a macOS-like environment built with React, TypeScript, and modern web technologies.
 
-## Features
+![WebOS Simulator](https://images.unsplash.com/photo-1557683311-eac922347aa1?w=1200&q=80)
 
-- **Desktop Environment**: Full macOS-like desktop with customizable wallpaper, dock, and menu bar
-- **Window Management**: Drag, resize, minimize, maximize, and close windows
-- **Virtual File System**: Persistent in-browser filesystem using IndexedDB
-- **Applications**:
-  - **Finder**: Browse and manage files and folders with drag & drop
-  - **Text Editor**: Create and edit text files
-  - **Terminal**: Mock shell with commands (ls, cd, echo, touch, mkdir, cat, etc.)
-  - **Settings**: Customize wallpaper, dark mode, and dock size
-  - **Browser**: Simulated browser stub
+## 🌟 Features
 
-## Getting Started
+### Desktop Environment
+- **Desktop with Customizable Wallpaper** - Multiple wallpaper options with right-click context menu
+- **Dock with Magnification Effect** - macOS-style dock with smooth hover animations
+- **Menu Bar** - Dynamic menu bar showing active app, system indicators, and real-time clock
+- **Window Management** - Full window operations: drag, resize, minimize, maximize, close
+- **Dark Mode Support** - Toggle between light and dark themes
 
-### Prerequisites
+### Core Applications
 
-- Node.js 18+ and npm/yarn/pnpm
+#### 📁 Finder
+- Browse virtual file system with hierarchical folder structure
+- Create, rename, and delete files and folders
+- Navigate through directories with back button and breadcrumb navigation
+- Visual file/folder icons with grid layout
 
-### Installation
+#### 📝 Text Editor
+- Create and edit text files
+- Save files to the virtual file system
+- Open existing files from Documents folder
+- Real-time unsaved changes indicator
+- Multiple file support with file picker
+
+#### ⌘ Terminal
+- Interactive command-line interface with mock shell
+- Supported commands:
+  - `ls` - List directory contents
+  - `cd` - Change directory
+  - `pwd` - Print working directory
+  - `touch` - Create new files
+  - `cat` - Display file contents
+  - `echo` - Print text
+  - `clear` - Clear terminal
+  - `help` - Show available commands
+- Command history with arrow key navigation
+- Auto-scrolling output
+
+#### ⚙️ Settings
+- **Appearance Tab**
+  - Light/Dark theme toggle
+  - 6 beautiful wallpaper options
+- **Display Tab**
+  - Adjustable dock size slider
+
+#### 🌐 Browser
+- Placeholder stub application showing "No Internet" message
+
+### Virtual File System
+- **Persistent Storage** - Uses IndexedDB for data persistence across browser sessions
+- **Hierarchical Structure** - Nested folders and files
+- **Default Folders** - Home, Documents, Downloads, Desktop, Applications
+- **Sample Files** - Welcome.txt and README.txt included
+
+## 🚀 Tech Stack
+
+- **Frontend Framework**: React 18 with TypeScript
+- **Build Tool**: Vite (fast dev server and optimized builds)
+- **State Management**: Zustand (lightweight and performant)
+- **Styling**: TailwindCSS with custom macOS-inspired theme
+- **Window Management**: react-rnd for drag & resize functionality
+- **Database**: Dexie.js (IndexedDB wrapper) with React hooks
+- **Icons**: Lucide React
+- **Utilities**: clsx for conditional classNames
+
+## 📦 Installation
 
 ```bash
+# Install dependencies
 npm install
-```
 
-### Development
-
-```bash
+# Start development server
 npm run dev
-```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-### Build
-
-```bash
+# Build for production
 npm run build
+
+# Preview production build
+npm run preview
 ```
 
-## Tech Stack
-
-- **React 18** - UI framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **TailwindCSS** - Styling
-- **Zustand** - State management
-- **react-rnd** - Window dragging and resizing
-- **Dexie.js** - IndexedDB wrapper for filesystem persistence
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 src/
-├── components/       # React components
-│   ├── apps/        # Application components (Finder, Terminal, etc.)
-│   ├── Desktop.tsx  # Desktop background and context menu
-│   ├── Dock.tsx     # Application dock
-│   ├── MenuBar.tsx  # Top menu bar
-│   ├── Window.tsx   # Window component
-│   └── WindowManager.tsx # Window management
-├── stores/          # Zustand state stores
-├── services/        # Services (filesystem)
-├── types/           # TypeScript type definitions
-└── apps/            # App registration
+├── components/
+│   ├── apps/              # Application components
+│   │   ├── Finder.tsx
+│   │   ├── TextEditor.tsx
+│   │   ├── Terminal.tsx
+│   │   ├── Settings.tsx
+│   │   └── Browser.tsx
+│   ├── Desktop.tsx        # Main desktop environment
+│   ├── MenuBar.tsx        # Top menu bar
+│   ├── Dock.tsx           # Bottom dock
+│   ├── Window.tsx         # Window wrapper component
+│   ├── WindowManager.tsx  # Window orchestration
+│   └── ContextMenu.tsx    # Right-click context menu
+├── store/
+│   ├── useOSStore.ts      # OS settings (theme, wallpaper, dock)
+│   ├── useWindowStore.ts  # Window state management
+│   └── useAppStore.ts     # Application registry
+├── db/
+│   └── fileSystem.ts      # Virtual file system with IndexedDB
+├── types/
+│   └── index.ts           # TypeScript type definitions
+├── App.tsx                # Root component
+├── main.tsx               # Application entry point
+└── index.css              # Global styles
 ```
 
-## Usage
+## 🎨 Key Features Implementation
 
-1. Click apps in the dock to launch them
-2. Right-click on the desktop to change wallpaper
-3. Use Finder to browse and manage files
-4. Open Settings to customize the environment
-5. All data persists in browser storage (IndexedDB)
+### Window Management
+- Each window has independent state (position, size, z-index)
+- Windows can be dragged, resized, minimized, and maximized
+- Click to focus brings window to front
+- macOS-style traffic light buttons (red, yellow, green)
 
-## Browser Compatibility
+### State Persistence
+- OS settings (theme, wallpaper, dock size) persist via localStorage
+- File system data persists via IndexedDB
+- Session state maintained across page refreshes
 
-- Chrome (latest 2 versions)
+### Responsive Design
+- Scales to various screen sizes
+- Minimum resolution: 1024x600
+- Flexible layout system
+
+### macOS-Inspired UI/UX
+- Backdrop blur effects on menu bar and dock
+- Smooth animations and transitions
+- Hover effects and visual feedback
+- System font stack matching macOS
+
+## 🔒 Security & Sandboxing
+
+- No access to user's actual file system
+- All operations contained within browser storage
+- No arbitrary code execution
+- Fully sandboxed environment
+
+## 🌐 Browser Compatibility
+
+- Chrome/Edge (latest 2 versions)
 - Safari (latest 2 versions)
 - Firefox (latest 2 versions)
 
-## License
+## 📝 Future Enhancements
 
-MIT
+Potential features for future versions:
+- Drag & drop file operations in Finder
+- Calculator app
+- Calendar app
+- Notes app with rich text editing
+- Photo viewer
+- Music player
+- App Store for installing new apps
+- Multi-user support with backend
+- WebSocket-based file sharing
+- More terminal commands
+- Spotlight search functionality
+
+## 🤝 Contributing
+
+This is an educational/demonstration project. Feel free to fork and extend with your own applications and features!
+
+## 📄 License
+
+MIT License - feel free to use this project for learning, demos, or building upon.
+
+## 🙏 Acknowledgments
+
+- Inspired by macOS Big Sur and later versions
+- Wallpaper images from Unsplash
+- Icons from Lucide React
+
+---
+
+Built with ❤️ using modern web technologies

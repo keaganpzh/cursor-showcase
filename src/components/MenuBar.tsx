@@ -1,42 +1,62 @@
-import { useState, useEffect } from 'react';
-import { useAppStore } from '../stores';
+import { useEffect, useState } from 'react';
+import { Apple, Search, Wifi, Battery } from 'lucide-react';
+import { useWindowStore } from '@/store/useWindowStore';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function MenuBar() {
-  const { windows, activeWindowId } = useAppStore();
-  const activeWindow = windows.find(w => w.id === activeWindowId);
-  const activeApp = activeWindow ? useAppStore.getState().apps.find(a => a.id === activeWindow.appId) : null;
+  const [time, setTime] = useState(new Date());
+  const { windows } = useWindowStore();
+  const { applications } = useAppStore();
 
-  const getCurrentTime = () => {
-    const now = new Date();
-    return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
+  const activeWindow = windows.length > 0 
+    ? windows.reduce((prev, current) => (prev.zIndex > current.zIndex ? prev : current))
+    : null;
 
-  const [time, setTime] = useState(getCurrentTime());
+  const activeApp = activeWindow 
+    ? applications.find(app => app.id === activeWindow.appId) 
+    : null;
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(getCurrentTime());
-    }, 1000);
-    return () => clearInterval(interval);
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   return (
-    <div className="fixed top-0 left-0 right-0 h-6 bg-black/40 backdrop-blur-md border-b border-white/10 z-50 flex items-center px-4 text-white text-xs">
-      <div className="flex items-center gap-4 flex-1">
-        <button className="hover:bg-white/10 px-2 py-1 rounded transition-colors">
-          🍎
-        </button>
-        {activeApp && (
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">{activeApp.name}</span>
-          </div>
-        )}
+    <div className="fixed top-0 left-0 right-0 h-[28px] bg-black/20 backdrop-blur-macos text-white flex items-center justify-between px-4 z-50 text-sm">
+      <div className="flex items-center gap-4">
+        <Apple size={16} className="cursor-pointer" />
+        <span className="font-semibold">{activeApp?.name || 'Finder'}</span>
+        <span className="cursor-pointer">File</span>
+        <span className="cursor-pointer">Edit</span>
+        <span className="cursor-pointer">View</span>
+        <span className="cursor-pointer">Window</span>
+        <span className="cursor-pointer">Help</span>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="w-1 h-1 bg-white rounded-full"></div>
-        <div className="w-1 h-1 bg-white rounded-full"></div>
-        <div className="w-1 h-1 bg-white rounded-full"></div>
-        <span className="font-medium">{time}</span>
+
+      <div className="flex items-center gap-4">
+        <Search size={14} className="cursor-pointer" />
+        <Wifi size={14} className="cursor-pointer" />
+        <Battery size={14} className="cursor-pointer" />
+        <div className="cursor-pointer">
+          <span>{formatDate(time)}</span>
+          <span className="ml-2">{formatTime(time)}</span>
+        </div>
       </div>
     </div>
   );

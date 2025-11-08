@@ -1,70 +1,67 @@
-import { useState, useEffect } from 'react';
-import { useSettingsStore } from '../stores';
+import { useEffect, useState } from 'react';
+import { useOSStore } from '@/store/useOSStore';
+import MenuBar from './MenuBar';
+import Dock from './Dock';
+import WindowManager from './WindowManager';
+import ContextMenu from './ContextMenu';
 
-interface DesktopProps {
-  onContextMenu?: (e: React.MouseEvent) => void;
+interface ContextMenuState {
+  x: number;
+  y: number;
+  visible: boolean;
 }
 
-export default function Desktop({ onContextMenu }: DesktopProps) {
-  const { settings } = useSettingsStore();
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+export default function Desktop() {
+  const { settings } = useOSStore();
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
+    x: 0,
+    y: 0,
+    visible: false,
+  });
 
   useEffect(() => {
-    const handleClick = () => setContextMenu(null);
+    const handleClick = () => setContextMenu((prev) => ({ ...prev, visible: false }));
     window.addEventListener('click', handleClick);
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
-  const handleRightClick = (e: React.MouseEvent) => {
+  const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
-    onContextMenu?.(e);
-  };
-
-  const handleChangeWallpaper = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const { updateSettings } = useSettingsStore.getState();
-          updateSettings({ wallpaper: event.target?.result as string });
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.click();
-    setContextMenu(null);
+    const target = e.target as HTMLElement;
+    if (target.id === 'desktop-area') {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        visible: true,
+      });
+    }
   };
 
   return (
     <div
-      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+      className={`h-screen w-screen overflow-hidden font-sf-pro ${
+        settings.isDarkMode ? 'dark' : ''
+      }`}
       style={{
-        backgroundImage: settings.wallpaper && (settings.wallpaper.startsWith('http') || settings.wallpaper.startsWith('data:'))
-          ? `url(${settings.wallpaper})` 
-          : 'none',
-        backgroundColor: settings.wallpaper && (settings.wallpaper.startsWith('http') || settings.wallpaper.startsWith('data:'))
-          ? 'transparent' 
-          : settings.wallpaper || '#1e1e1e',
+        backgroundImage: `url(${settings.wallpaper})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
-      onContextMenu={handleRightClick}
     >
-      {contextMenu && (
-        <div
-          className="fixed bg-white/90 backdrop-blur-md rounded-lg shadow-lg py-1 z-50 min-w-[180px]"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-        >
-          <button
-            onClick={handleChangeWallpaper}
-            className="w-full text-left px-4 py-2 hover:bg-blue-500 hover:text-white transition-colors"
-          >
-            Change Wallpaper
-          </button>
-        </div>
+      <MenuBar />
+      
+      <div
+        id="desktop-area"
+        className="h-[calc(100vh-28px-80px)] mt-[28px]"
+        onContextMenu={handleContextMenu}
+      >
+        <WindowManager />
+      </div>
+
+      <Dock />
+
+      {contextMenu.visible && (
+        <ContextMenu x={contextMenu.x} y={contextMenu.y} />
       )}
     </div>
   );
