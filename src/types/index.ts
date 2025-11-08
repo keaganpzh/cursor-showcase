@@ -36,3 +36,24 @@ export interface Settings {
   dockSize: number;
 }
 
+export interface Bookmark {
+  id: number;
+  title: string;
+  url: string;
+  favicon: string | null;
+  createdAt: string;
+}
+
+export interface HistoryEntry {
+  id: number;
+  url: string;
+  title: string;
+  visitedAt: string;
+}
+
+export interface NavigationState {
+  currentUrl: string;
+  history: string[];
+  historyIndex: number;
+}
+
