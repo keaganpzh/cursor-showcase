@@ -1,9 +1,6 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-dotenv==1.0.0
-httpx>=0.28.0,<0.29.0
-httpx-socks==0.10.1
+httpx==0.25.2
 pydantic==2.5.0
-beautifulsoup4==4.12.2
-lxml==4.9.3
 

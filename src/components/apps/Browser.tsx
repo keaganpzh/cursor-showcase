@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useBrowserStore } from '../../stores/browserStore';
 import { AiOutlineGlobal } from 'react-icons/ai';
 
-const API_BASE_URL = (import.meta.env as { VITE_API_URL?: string }).VITE_API_URL || 'http://localhost:8000';
-
 export default function Browser() {
   const {
     currentUrl,
@@ -574,14 +572,10 @@ export default function Browser() {
         {currentUrl && !iframeBlocked && (
           <iframe
             ref={iframeRef}
-            src={`${API_BASE_URL}/api/browser/proxy?url=${encodeURIComponent(currentUrl)}`}
+            src={currentUrl}
             className="w-full h-full border-0"
             title={currentTitle || currentUrl}
             onLoad={handleIframeLoad}
-            onError={() => {
-              setIframeLoading(false);
-              setError('Failed to load page. The website may not be accessible.');
-            }}
             sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-top-navigation"
           />
         )}
