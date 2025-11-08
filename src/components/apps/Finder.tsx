@@ -97,41 +97,82 @@ export default function Finder() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      <div className="bg-gray-100 border-b border-gray-300 p-2 flex items-center gap-2">
+    <div className="h-full flex flex-col" style={{ background: '#f5f5f7' }}>
+      <div 
+        className="border-b p-3 flex items-center gap-3"
+        style={{
+          background: 'linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%)',
+          borderBottom: '0.5px solid rgba(0, 0, 0, 0.1)',
+        }}
+      >
         <button
           onClick={goBack}
           disabled={currentPath.length === 0}
-          className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: currentPath.length === 0 ? 'rgba(0, 0, 0, 0.05)' : '#007aff',
+            color: currentPath.length === 0 ? '#666' : 'white',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            if (currentPath.length > 0) {
+              e.currentTarget.style.background = '#0051d5';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (currentPath.length > 0) {
+              e.currentTarget.style.background = '#007aff';
+            }
+          }}
         >
           ← Back
         </button>
-        <div className="flex-1 text-sm text-gray-600">
+        <div className="flex-1 text-xs font-medium text-gray-700 flex items-center gap-1">
           {currentPath.map((id, idx) => {
             const node = getNode(id);
             return (
-              <span key={id}>
-                {node?.name || id}
-                {idx < currentPath.length - 1 && ' / '}
+              <span key={id} className="flex items-center gap-1">
+                <span>{node?.name || id}</span>
+                {idx < currentPath.length - 1 && <span className="text-gray-400">/</span>}
               </span>
             );
           })}
         </div>
         <button
           onClick={handleCreateFolder}
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="px-3 py-1.5 text-xs font-medium text-white rounded-md transition-all duration-150"
+          style={{
+            background: '#007aff',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#0051d5';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#007aff';
+          }}
         >
           New Folder
         </button>
         <button
           onClick={handleCreateFile}
-          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+          className="px-3 py-1.5 text-xs font-medium text-white rounded-md transition-all duration-150"
+          style={{
+            background: '#34c759',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#28a745';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#34c759';
+          }}
         >
           New File
         </button>
       </div>
-      <div className="flex-1 overflow-auto p-4">
-        <div className="grid grid-cols-6 gap-4">
+      <div className="flex-1 overflow-auto p-6">
+        <div className="grid grid-cols-6 gap-6">
           {children.map((node) => (
             <div
               key={node.id}
@@ -139,13 +180,20 @@ export default function Finder() {
               onDragStart={(e) => handleDragStart(e, node.id)}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, currentFolderId)}
-              className={`flex flex-col items-center p-3 rounded-lg cursor-pointer transition-colors ${
-                selectedId === node.id ? 'bg-blue-100' : 'hover:bg-gray-100'
+              className={`flex flex-col items-center p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                selectedId === node.id 
+                  ? 'bg-blue-100 scale-105' 
+                  : 'hover:bg-white/60 hover:scale-105'
               }`}
+              style={{
+                boxShadow: selectedId === node.id 
+                  ? '0 4px 12px rgba(0, 122, 255, 0.2)' 
+                  : '0 2px 8px rgba(0, 0, 0, 0.05)',
+              }}
               onClick={() => setSelectedId(node.id)}
               onDoubleClick={() => handleDoubleClick(node)}
             >
-              <div className="text-4xl mb-2">
+              <div className="text-5xl mb-2 filter drop-shadow-sm">
                 {node.type === 'folder' ? '📁' : '📄'}
               </div>
               {renamingId === node.id ? (
@@ -155,11 +203,11 @@ export default function Finder() {
                   onChange={(e) => setNewName(e.target.value)}
                   onBlur={saveRename}
                   onKeyDown={(e) => e.key === 'Enter' && saveRename()}
-                  className="text-xs text-center border border-blue-500 rounded px-1"
+                  className="text-xs text-center border-2 border-blue-500 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   autoFocus
                 />
               ) : (
-                <div className="text-xs text-center break-words max-w-full">
+                <div className="text-xs text-center break-words max-w-full font-medium text-gray-700 px-1">
                   {node.name}
                 </div>
               )}
@@ -168,16 +216,43 @@ export default function Finder() {
         </div>
       </div>
       {selectedId && (
-        <div className="border-t border-gray-300 p-2 bg-gray-100 flex gap-2">
+        <div 
+          className="border-t p-3 flex gap-2"
+          style={{
+            background: 'linear-gradient(to top, #ffffff 0%, #f8f8f8 100%)',
+            borderTop: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+        >
           <button
             onClick={() => handleRename(getNode(selectedId)!)}
-            className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50"
+            className="px-4 py-1.5 text-xs font-medium rounded-md transition-all duration-150"
+            style={{
+              background: 'white',
+              border: '0.5px solid rgba(0, 0, 0, 0.1)',
+              color: '#333',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#f5f5f7';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'white';
+            }}
           >
             Rename
           </button>
           <button
             onClick={() => handleDelete(selectedId)}
-            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            className="px-4 py-1.5 text-xs font-medium text-white rounded-md transition-all duration-150"
+            style={{
+              background: '#ff3b30',
+              border: '0.5px solid rgba(0, 0, 0, 0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#d70015';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#ff3b30';
+            }}
           >
             Delete
           </button>

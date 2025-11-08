@@ -42,13 +42,34 @@ export default function TextEditor() {
 
   return (
     <div className="h-full flex flex-col bg-white">
-      <div className="bg-gray-100 border-b border-gray-300 p-2 flex items-center justify-between">
-        <span className="text-sm text-gray-600">{fileName}</span>
-        <div className="flex gap-2">
-          {!saved && <span className="text-xs text-orange-500">Unsaved</span>}
+      <div 
+        className="border-b p-3 flex items-center justify-between"
+        style={{
+          background: 'linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%)',
+          borderBottom: '0.5px solid rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <span className="text-xs font-medium text-gray-700">{fileName}</span>
+        <div className="flex items-center gap-3">
+          {!saved && (
+            <span className="text-xs text-orange-500 font-medium flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+              Unsaved
+            </span>
+          )}
           <button
             onClick={handleSave}
-            className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-1.5 text-xs font-medium text-white rounded-md transition-all duration-150"
+            style={{
+              background: '#007aff',
+              border: '0.5px solid rgba(0, 0, 0, 0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#0051d5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#007aff';
+            }}
           >
             Save
           </button>
@@ -60,7 +81,11 @@ export default function TextEditor() {
           setContent(e.target.value);
           setSaved(false);
         }}
-        className="flex-1 w-full p-4 font-mono text-sm border-none outline-none resize-none"
+        className="flex-1 w-full p-6 font-mono text-sm border-none outline-none resize-none bg-white"
+        style={{
+          color: '#1d1d1f',
+          lineHeight: '1.6',
+        }}
         placeholder="Start typing..."
       />
     </div>

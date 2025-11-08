@@ -86,11 +86,32 @@ export default function Browser() {
 
   return (
     <div className="h-full flex flex-col bg-white">
-      <div className="bg-gray-100 border-b border-gray-300 p-2 flex items-center gap-2 flex-shrink-0">
+      <div 
+        className="border-b p-3 flex items-center gap-2 flex-shrink-0"
+        style={{
+          background: 'linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%)',
+          borderBottom: '0.5px solid rgba(0, 0, 0, 0.1)',
+        }}
+      >
         <button
           onClick={goBack}
           disabled={!canGoBack}
-          className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: !canGoBack ? 'rgba(0, 0, 0, 0.05)' : '#007aff',
+            color: !canGoBack ? '#666' : 'white',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            if (canGoBack) {
+              e.currentTarget.style.background = '#0051d5';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (canGoBack) {
+              e.currentTarget.style.background = '#007aff';
+            }
+          }}
           title="Back"
         >
           ←
@@ -98,7 +119,22 @@ export default function Browser() {
         <button
           onClick={goForward}
           disabled={!canGoForward}
-          className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: !canGoForward ? 'rgba(0, 0, 0, 0.05)' : '#007aff',
+            color: !canGoForward ? '#666' : 'white',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            if (canGoForward) {
+              e.currentTarget.style.background = '#0051d5';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (canGoForward) {
+              e.currentTarget.style.background = '#007aff';
+            }
+          }}
           title="Forward"
         >
           →
@@ -106,25 +142,58 @@ export default function Browser() {
         <button
           onClick={refresh}
           disabled={isLoading}
-          className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: isLoading ? 'rgba(0, 0, 0, 0.05)' : '#007aff',
+            color: isLoading ? '#666' : 'white',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            if (!isLoading) {
+              e.currentTarget.style.background = '#0051d5';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isLoading) {
+              e.currentTarget.style.background = '#007aff';
+            }
+          }}
           title="Refresh"
         >
           ↻
         </button>
         
-        <div className="flex-1 flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1">
+        <div className="flex-1 flex items-center gap-2 rounded-md px-3 py-1.5" style={{
+          background: 'white',
+          border: '0.5px solid rgba(0, 0, 0, 0.1)',
+        }}>
           <input
             type="text"
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Enter URL or search query"
-            className="flex-1 outline-none text-sm"
+            className="flex-1 outline-none text-sm bg-transparent"
+            style={{ color: '#1d1d1f' }}
           />
           <button
             onClick={handleNavigate}
             disabled={isLoading}
-            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            className="px-3 py-1 text-xs font-medium text-white rounded-md transition-all duration-150 disabled:opacity-50"
+            style={{
+              background: '#007aff',
+              border: '0.5px solid rgba(0, 0, 0, 0.1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.background = '#0051d5';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.background = '#007aff';
+              }
+            }}
           >
             Go
           </button>
@@ -132,9 +201,26 @@ export default function Browser() {
 
         <button
           onClick={handleBookmarkToggle}
-          className={`px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 ${
-            currentUrl && isBookmarked(currentUrl) ? 'bg-yellow-100' : 'bg-white'
-          }`}
+          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150"
+          style={{
+            background: currentUrl && isBookmarked(currentUrl) ? '#ffd60a' : 'white',
+            color: currentUrl && isBookmarked(currentUrl) ? '#1d1d1f' : '#666',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            if (currentUrl && isBookmarked(currentUrl)) {
+              e.currentTarget.style.background = '#ffcc00';
+            } else {
+              e.currentTarget.style.background = '#f5f5f7';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (currentUrl && isBookmarked(currentUrl)) {
+              e.currentTarget.style.background = '#ffd60a';
+            } else {
+              e.currentTarget.style.background = 'white';
+            }
+          }}
           title="Bookmark"
         >
           {currentUrl && isBookmarked(currentUrl) ? '★' : '☆'}
@@ -146,14 +232,38 @@ export default function Browser() {
               setShowBookmarks(!showBookmarks);
               setShowHistory(false);
             }}
-            className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50"
+            className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150"
+            style={{
+              background: showBookmarks ? '#007aff' : 'white',
+              color: showBookmarks ? 'white' : '#666',
+              border: '0.5px solid rgba(0, 0, 0, 0.1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!showBookmarks) {
+                e.currentTarget.style.background = '#f5f5f7';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showBookmarks) {
+                e.currentTarget.style.background = 'white';
+              }
+            }}
             title="Bookmarks"
           >
             📑
           </button>
           {showBookmarks && (
-            <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-gray-300 rounded shadow-lg z-50 max-h-96 overflow-y-auto">
-              <div className="p-2 border-b border-gray-200 font-semibold">Bookmarks</div>
+            <div 
+              className="absolute right-0 top-full mt-1 w-64 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+              style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'saturate(180%) blur(20px)',
+                WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(0, 0, 0, 0.1)',
+                border: '0.5px solid rgba(255, 255, 255, 0.3)',
+              }}
+            >
+              <div className="p-2 border-b border-gray-200 font-semibold text-sm" style={{ color: '#1d1d1f' }}>Bookmarks</div>
               {bookmarks.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm">No bookmarks yet</div>
               ) : (
@@ -162,11 +272,11 @@ export default function Browser() {
                     <button
                       key={bookmark.id}
                       onClick={() => handleBookmarkClick(bookmark.url)}
-                      className="w-full text-left p-2 hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full text-left p-2 hover:bg-gray-50 flex items-center gap-2 transition-colors"
                     >
                       <span className="text-xs">{bookmark.favicon || '🌐'}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{bookmark.title}</div>
+                        <div className="text-sm font-medium truncate" style={{ color: '#1d1d1f' }}>{bookmark.title}</div>
                         <div className="text-xs text-gray-500 truncate">{bookmark.url}</div>
                       </div>
                       <button
@@ -174,7 +284,8 @@ export default function Browser() {
                           e.stopPropagation();
                           removeBookmark(bookmark.id);
                         }}
-                        className="text-red-500 hover:text-red-700 text-xs px-1"
+                        className="text-red-500 hover:text-red-700 text-xs px-1 transition-colors"
+                        style={{ color: '#ff3b30' }}
                       >
                         ×
                       </button>
@@ -192,14 +303,38 @@ export default function Browser() {
               setShowHistory(!showHistory);
               setShowBookmarks(false);
             }}
-            className="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50"
+            className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150"
+            style={{
+              background: showHistory ? '#007aff' : 'white',
+              color: showHistory ? 'white' : '#666',
+              border: '0.5px solid rgba(0, 0, 0, 0.1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!showHistory) {
+                e.currentTarget.style.background = '#f5f5f7';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showHistory) {
+                e.currentTarget.style.background = 'white';
+              }
+            }}
             title="History"
           >
             🕐
           </button>
           {showHistory && (
-            <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-gray-300 rounded shadow-lg z-50 max-h-96 overflow-y-auto">
-              <div className="p-2 border-b border-gray-200 font-semibold">History</div>
+            <div 
+              className="absolute right-0 top-full mt-1 w-64 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+              style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'saturate(180%) blur(20px)',
+                WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(0, 0, 0, 0.1)',
+                border: '0.5px solid rgba(255, 255, 255, 0.3)',
+              }}
+            >
+              <div className="p-2 border-b border-gray-200 font-semibold text-sm" style={{ color: '#1d1d1f' }}>History</div>
               {browsingHistory.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm">No history yet</div>
               ) : (
@@ -208,10 +343,10 @@ export default function Browser() {
                     <button
                       key={entry.id}
                       onClick={() => handleHistoryClick(entry.url)}
-                      className="w-full text-left p-2 hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full text-left p-2 hover:bg-gray-50 flex items-center gap-2 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{entry.title}</div>
+                        <div className="text-sm font-medium truncate" style={{ color: '#1d1d1f' }}>{entry.title}</div>
                         <div className="text-xs text-gray-500 truncate">{entry.url}</div>
                         <div className="text-xs text-gray-400">
                           {new Date(entry.visitedAt).toLocaleString()}
@@ -222,7 +357,8 @@ export default function Browser() {
                           e.stopPropagation();
                           clearHistoryEntry(entry.id);
                         }}
-                        className="text-red-500 hover:text-red-700 text-xs px-1"
+                        className="text-red-500 hover:text-red-700 text-xs px-1 transition-colors"
+                        style={{ color: '#ff3b30' }}
                       >
                         ×
                       </button>
@@ -235,13 +371,21 @@ export default function Browser() {
         </div>
       </div>
 
-      <div className="flex-1 relative bg-gray-50 overflow-hidden">
+      <div className="flex-1 relative overflow-hidden" style={{ background: '#f5f5f7' }}>
         {error && (
-          <div className="absolute top-0 left-0 right-0 bg-red-100 border-b border-red-300 p-2 text-sm text-red-700 z-10">
-            Error: {error}
+          <div 
+            className="absolute top-0 left-0 right-0 border-b p-3 text-sm z-10 flex items-center justify-between"
+            style={{
+              background: 'rgba(255, 59, 48, 0.1)',
+              borderBottom: '0.5px solid rgba(255, 59, 48, 0.2)',
+              color: '#d70015',
+            }}
+          >
+            <span className="font-medium">Error: {error}</span>
             <button
               onClick={() => setError(null)}
-              className="ml-2 text-red-500 hover:text-red-700"
+              className="text-red-500 hover:text-red-700 transition-colors px-2"
+              style={{ color: '#ff3b30' }}
             >
               ×
             </button>
@@ -249,32 +393,58 @@ export default function Browser() {
         )}
 
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-20">
+          <div 
+            className="absolute inset-0 flex items-center justify-center z-20"
+            style={{
+              background: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
             <div className="text-center">
-              <div className="text-4xl mb-2 animate-spin">🌐</div>
-              <div className="text-sm text-gray-600">Loading...</div>
+              <div className="text-4xl mb-3 animate-spin">🌐</div>
+              <div className="text-sm font-medium" style={{ color: '#1d1d1f' }}>Loading...</div>
             </div>
           </div>
         )}
 
         {!currentHtml && !isLoading && !error && (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🌐</div>
-              <h2 className="text-2xl font-bold mb-2">Welcome to Browser</h2>
-              <p className="text-gray-600 mb-4">
+          <div className="h-full flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <div className="text-6xl mb-6 filter drop-shadow-sm">🌐</div>
+              <h2 className="text-3xl font-semibold mb-3" style={{ color: '#1d1d1f' }}>Welcome to Browser</h2>
+              <p className="text-sm mb-6" style={{ color: '#666' }}>
                 Enter a URL or search query to get started
               </p>
-              <div className="flex flex-wrap gap-2 justify-center">
+              <div className="flex flex-wrap gap-3 justify-center">
                 <button
                   onClick={() => navigate('https://www.google.com')}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-5 py-2.5 text-sm font-medium text-white rounded-md transition-all duration-150"
+                  style={{
+                    background: '#007aff',
+                    border: '0.5px solid rgba(0, 0, 0, 0.1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#0051d5';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#007aff';
+                  }}
                 >
                   Go to Google
                 </button>
                 <button
                   onClick={() => navigate('https://github.com')}
-                  className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
+                  className="px-5 py-2.5 text-sm font-medium text-white rounded-md transition-all duration-150"
+                  style={{
+                    background: '#1d1d1f',
+                    border: '0.5px solid rgba(0, 0, 0, 0.1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#000';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#1d1d1f';
+                  }}
                 >
                   Go to GitHub
                 </button>

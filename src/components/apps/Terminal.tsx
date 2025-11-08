@@ -148,29 +148,38 @@ export default function Terminal() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-black text-green-400 font-mono text-sm">
-      <div ref={outputRef} className="flex-1 overflow-auto p-4">
+    <div 
+      className="h-full flex flex-col font-mono text-sm"
+      style={{
+        background: '#1e1e1e',
+        color: '#d4d4d4',
+      }}
+    >
+      <div ref={outputRef} className="flex-1 overflow-auto p-6" style={{ lineHeight: '1.6' }}>
         {commands.map((cmd, idx) => (
-          <div key={idx} className="mb-2">
+          <div key={idx} className="mb-3">
             {cmd.command && (
-              <div className="text-white">
-                <span className="text-green-400">{getPrompt()}</span>
-                {cmd.command}
+              <div style={{ color: '#d4d4d4' }}>
+                <span style={{ color: '#4ec9b0' }}>{getPrompt()}</span>
+                <span style={{ color: '#ce9178' }}>{cmd.command}</span>
               </div>
             )}
             {cmd.output && (
-              <div className="mt-1 whitespace-pre-wrap">{cmd.output}</div>
+              <div className="mt-2 whitespace-pre-wrap" style={{ color: '#d4d4d4' }}>
+                {cmd.output}
+              </div>
             )}
           </div>
         ))}
-        <form onSubmit={handleSubmit} className="flex items-center">
-          <span className="text-green-400">{getPrompt()}</span>
+        <form onSubmit={handleSubmit} className="flex items-center mt-2">
+          <span style={{ color: '#4ec9b0' }}>{getPrompt()}</span>
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 bg-transparent text-white outline-none border-none"
+            className="flex-1 bg-transparent outline-none border-none"
+            style={{ color: '#ce9178' }}
             autoFocus
           />
         </form>

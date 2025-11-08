@@ -55,12 +55,20 @@ export default function Desktop({ onContextMenu }: DesktopProps) {
     >
       {contextMenu && (
         <div
-          className="fixed bg-white/90 backdrop-blur-md rounded-lg shadow-lg py-1 z-50 min-w-[180px]"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
+          className="fixed z-50 min-w-[180px] rounded-lg overflow-hidden"
+          style={{ 
+            left: contextMenu.x, 
+            top: contextMenu.y,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'saturate(180%) blur(20px)',
+            WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(0, 0, 0, 0.1)',
+            border: '0.5px solid rgba(255, 255, 255, 0.3)',
+          }}
         >
           <button
             onClick={handleChangeWallpaper}
-            className="w-full text-left px-4 py-2 hover:bg-blue-500 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white transition-colors duration-150"
           >
             Change Wallpaper
           </button>
