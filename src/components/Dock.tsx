@@ -11,7 +11,7 @@ export default function Dock() {
   };
 
   const isAppRunning = (appId: string) => {
-    return windows.some(w => w.appId === appId && !w.minimized);
+    return windows.some(w => w.appId === appId);
   };
 
   return (

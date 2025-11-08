@@ -21,7 +21,27 @@ export const useAppStore = create<AppStore>((set) => ({
   activeWindowId: null,
   nextZIndex: 1,
   addWindow: (appId, title) => {
-    const app = useAppStore.getState().apps.find(a => a.id === appId);
+    const state = useAppStore.getState();
+    // Check if a window with this appId already exists
+    const existingWindow = state.windows.find(w => w.appId === appId);
+    
+    if (existingWindow) {
+      // Bring existing window to front and unminimize it
+      const newZIndex = state.nextZIndex + 1;
+      set({
+        activeWindowId: existingWindow.id,
+        nextZIndex: newZIndex,
+        windows: state.windows.map(w => 
+          w.id === existingWindow.id 
+            ? { ...w, minimized: false, zIndex: newZIndex }
+            : w
+        ),
+      });
+      return;
+    }
+    
+    // Create new window if none exists
+    const app = state.apps.find(a => a.id === appId);
     set((state) => {
       const newZIndex = state.nextZIndex + 1;
       const defaultSize = app?.defaultSize || { width: 800, height: 600 };
