@@ -14,7 +14,7 @@ export interface WindowState {
 export interface App {
   id: string;
   name: string;
-  icon: string;
+  icon: React.ReactNode;
   component: React.ComponentType;
   defaultSize?: { width: number; height: number };
   defaultPosition?: { x: number; y: number };

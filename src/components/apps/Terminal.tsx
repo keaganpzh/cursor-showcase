@@ -37,7 +37,7 @@ export default function Terminal() {
         const children = getChildren(getCurrentFolderId());
         output = children.length === 0 
           ? 'Empty directory' 
-          : children.map(n => `${n.type === 'folder' ? '📁' : '📄'} ${n.name}`).join('\n');
+          : children.map(n => `${n.type === 'folder' ? '[DIR]' : '[FILE]'} ${n.name}`).join('\n');
         break;
 
       case 'cd':
