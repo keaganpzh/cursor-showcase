@@ -25,7 +25,7 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Starting WebOS Simulator${NC}"
+echo -e "${BLUE}  Starting Yuvbuntu${NC}"
 echo -e "${BLUE}========================================${NC}\n"
 
 # Check if we're in the project root

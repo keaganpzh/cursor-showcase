@@ -9,7 +9,7 @@ interface Command {
 export default function Terminal() {
   const { nodes, getChildren, getNode, createNode, updateFileContent } = useFileSystemStore();
   const [commands, setCommands] = useState<Command[]>([
-    { command: '', output: 'Welcome to WebOS Terminal\nType "help" for available commands.' },
+    { command: '', output: 'Welcome to Yuvbuntu Terminal\nType "help" for available commands.' },
   ]);
   const [currentPath, setCurrentPath] = useState<string[]>(['home']);
   const [input, setInput] = useState('');
@@ -144,7 +144,7 @@ export default function Terminal() {
 
   const getPrompt = () => {
     const currentFolder = getNode(getCurrentFolderId());
-    return `user@webos:${currentFolder?.name || 'home'}$ `;
+    return `user@yuvbuntu:${currentFolder?.name || 'home'}$ `;
   };
 
   return (

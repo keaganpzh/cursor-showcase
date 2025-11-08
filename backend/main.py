@@ -7,7 +7,7 @@ from routes import browser
 
 load_dotenv()
 
-app = FastAPI(title="WebOS Browser Backend", version="1.0.0")
+app = FastAPI(title="Yuvbuntu Browser Backend", version="1.0.0")
 
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
@@ -23,7 +23,7 @@ app.include_router(browser.router, prefix="/api/browser", tags=["browser"])
 
 @app.get("/")
 async def root():
-    return {"message": "WebOS Browser Backend API"}
+    return {"message": "Yuvbuntu Browser Backend API"}
 
 @app.get("/health")
 async def health():

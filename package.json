@@ -1,7 +1,7 @@
 {
-  "name": "webos-simulator",
+  "name": "yuvbuntu",
   "version": "1.0.0",
-  "description": "macOS-style WebOS Simulator",
+  "description": "macOS-style Yuvbuntu",
   "type": "module",
   "scripts": {
     "dev": "vite",

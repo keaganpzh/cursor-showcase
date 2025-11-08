@@ -55,7 +55,7 @@ export const FileSystemService = {
       name: 'Welcome.txt',
       type: 'file',
       parentId: 'documents',
-      content: 'Welcome to WebOS Simulator!\n\nThis is a simulated macOS-like environment running in your browser.',
+      content: 'Welcome to Yuvbuntu!\n\nThis is a simulated macOS-like environment running in your browser.',
       createdAt: now,
       modifiedAt: now,
     };

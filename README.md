@@ -1,4 +1,4 @@
-# WebOS Simulator
+# Yuvbuntu
 
 A browser-based macOS-style desktop environment simulator built with React, TypeScript, and TailwindCSS.
 
