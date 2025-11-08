@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "url": "https://www.google.com",
+    "title": "Google",
+    "visitedAt": "2025-11-08T00:53:16.090696"
+  },
+  {
+    "id": 2,
+    "url": "https://www.google.com",
+    "title": "https://www.google.com",
+    "visitedAt": "2025-11-08T01:04:51.079301"
+  },
+  {
+    "id": 3,
+    "url": "https://www.google.com",
+    "title": "https://www.google.com",
+    "visitedAt": "2025-11-08T01:04:53.888719"
+  },
+  {
+    "id": 4,
+    "url": "https://www.github.com",
+    "title": "https://www.github.com",
+    "visitedAt": "2025-11-08T01:05:08.895258"
+  },
+  {
+    "id": 5,
+    "url": "https://www.yuvbindal.com",
+    "title": "https://www.yuvbindal.com",
+    "visitedAt": "2025-11-08T01:05:34.368214"
+  },
+  {
+    "id": 6,
+    "url": "https://www.yahoo.com",
+    "title": "https://www.yahoo.com",
+    "visitedAt": "2025-11-08T01:05:46.418948"
+  },
+  {
+    "id": 7,
+    "url": "https://www.github,com",
+    "title": "https://www.github,com",
+    "visitedAt": "2025-11-08T01:05:52.705845"
+  },
+  {
+    "id": 8,
+    "url": "https://www.github.com",
+    "title": "https://www.github.com",
+    "visitedAt": "2025-11-08T01:05:54.843161"
+  },
+  {
+    "id": 9,
+    "url": "https://www.linkedin.com",
+    "title": "https://www.linkedin.com",
+    "visitedAt": "2025-11-08T01:05:59.446675"
+  }
+]

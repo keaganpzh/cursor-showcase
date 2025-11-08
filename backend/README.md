@@ -8,36 +8,25 @@ cd backend
 pip install -r requirements.txt
 ```
 
-2. Copy `.env.example` to `.env` and fill in your Browserbase API key:
-```bash
-cp .env.example .env
-# Edit .env and add your BROWSERBASE_API_KEY
-```
-
-3. Run the backend server:
+2. Run the backend server:
 ```bash
 uvicorn main:app --reload --port 8000
 ```
 
-## Browserbase Integration
+## Browser Functionality
 
-This backend uses the [Browserbase Python SDK](https://docs.browserbase.com/introduction) for web page navigation and content fetching. The SDK provides:
+The browser uses direct iframe loading for webpage rendering. Pages are loaded directly in the browser without backend fetching.
 
-- Native browser automation capabilities
-- Session management
-- Content extraction
-
-Make sure you have a valid Browserbase API key. You can get one from [Browserbase Dashboard](https://www.browserbase.com).
+**Note:** Many modern websites (Twitter, Facebook, GitHub, etc.) block iframe embedding due to X-Frame-Options headers and CORS policies. This approach works best for simple sites, documentation pages, and sites that allow iframe embedding.
 
 ## API Endpoints
 
-- `POST /api/browser/navigate?url=<url>` - Navigate to a URL
 - `GET /api/browser/bookmarks` - Get all bookmarks
 - `POST /api/browser/bookmarks` - Add a bookmark
 - `DELETE /api/browser/bookmarks/{id}` - Delete a bookmark
 - `GET /api/browser/history` - Get browsing history
+- `POST /api/browser/history` - Add a history entry
 - `DELETE /api/browser/history/{id}` - Delete history entry
-- `GET /api/browser/search?query=<query>` - Search the web
 
 ## Data Storage
 
@@ -48,7 +37,6 @@ Make sure you have a valid Browserbase API key. You can get one from [Browserbas
 
 ## Notes
 
-- Make sure to set your Browserbase API key in the `.env` file
 - The backend runs on port 8000 by default
-- The Browserbase SDK is used for all web navigation operations
+- Webpage navigation is handled client-side using direct iframe loading
 

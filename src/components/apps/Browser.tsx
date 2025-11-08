@@ -5,7 +5,6 @@ export default function Browser() {
   const {
     currentUrl,
     currentTitle,
-    currentHtml,
     isLoading,
     error,
     canGoBack,
@@ -29,6 +28,7 @@ export default function Browser() {
   const [urlInput, setUrlInput] = useState('');
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [iframeLoading, setIframeLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -38,6 +38,9 @@ export default function Browser() {
 
   useEffect(() => {
     setUrlInput(currentUrl);
+    if (currentUrl) {
+      setIframeLoading(true);
+    }
   }, [currentUrl]);
 
   const handleNavigate = async () => {
@@ -82,6 +85,10 @@ export default function Browser() {
   const handleHistoryClick = (url: string) => {
     navigate(url);
     setShowHistory(false);
+  };
+
+  const handleIframeLoad = () => {
+    setIframeLoading(false);
   };
 
   return (
@@ -392,7 +399,7 @@ export default function Browser() {
           </div>
         )}
 
-        {isLoading && (
+        {(isLoading || iframeLoading) && (
           <div 
             className="absolute inset-0 flex items-center justify-center z-20"
             style={{
@@ -407,7 +414,7 @@ export default function Browser() {
           </div>
         )}
 
-        {!currentHtml && !isLoading && !error && (
+        {!currentUrl && !isLoading && !error && (
           <div className="h-full flex items-center justify-center p-8">
             <div className="text-center max-w-md">
               <div className="text-6xl mb-6 filter drop-shadow-sm">🌐</div>
@@ -453,13 +460,14 @@ export default function Browser() {
           </div>
         )}
 
-        {currentHtml && !isLoading && (
+        {currentUrl && (
           <iframe
             ref={iframeRef}
-            srcDoc={currentHtml}
+            src={currentUrl}
             className="w-full h-full border-0"
             title={currentTitle || currentUrl}
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+            onLoad={handleIframeLoad}
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-top-navigation"
           />
         )}
       </div>

@@ -1,11 +1,10 @@
 import { create } from 'zustand';
 import { Bookmark, HistoryEntry } from '../types';
-import { BrowserService, NavigateResponse } from '../services/browser';
+import { BrowserService } from '../services/browser';
 
 interface BrowserStore {
   currentUrl: string;
   currentTitle: string;
-  currentHtml: string;
   isLoading: boolean;
   error: string | null;
   
@@ -36,10 +35,24 @@ interface BrowserStore {
   setError: (error: string | null) => void;
 }
 
+function normalizeUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  
+  if (!trimmed.match(/^https?:\/\//i)) {
+    if (trimmed.includes('.') && !trimmed.includes(' ')) {
+      return `https://${trimmed}`;
+    } else {
+      return `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
+    }
+  }
+  
+  return trimmed;
+}
+
 export const useBrowserStore = create<BrowserStore>((set, get) => ({
   currentUrl: '',
   currentTitle: '',
-  currentHtml: '',
   isLoading: false,
   error: null,
   
@@ -54,23 +67,22 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
   
   navigate: async (url: string, skipHistory: boolean = false) => {
     const state = get();
+    const normalizedUrl = normalizeUrl(url);
+    
     set({ isLoading: true, error: null });
     
     try {
-      const result: NavigateResponse = await BrowserService.navigate(url);
-      
       let newHistory = state.history;
       let newIndex = state.historyIndex;
       
       if (!skipHistory) {
-        newHistory = [...state.history.slice(0, state.historyIndex + 1), result.url];
+        newHistory = [...state.history.slice(0, state.historyIndex + 1), normalizedUrl];
         newIndex = newHistory.length - 1;
       }
       
       set({
-        currentUrl: result.url,
-        currentTitle: result.title,
-        currentHtml: result.html,
+        currentUrl: normalizedUrl,
+        currentTitle: normalizedUrl,
         history: newHistory,
         historyIndex: newIndex,
         isLoading: false,
@@ -79,7 +91,12 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
         canGoForward: skipHistory ? (newIndex < newHistory.length - 1) : false,
       });
       
-      await get().loadHistory();
+      try {
+        await BrowserService.addHistoryEntry(normalizedUrl, normalizedUrl);
+        await get().loadHistory();
+      } catch (error) {
+        console.error('Failed to add history entry:', error);
+      }
     } catch (error) {
       set({
         isLoading: false,
@@ -180,18 +197,17 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
   
   search: async (query: string) => {
     const state = get();
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    
     set({ isLoading: true, error: null });
     
     try {
-      const result: NavigateResponse = await BrowserService.search(query);
-      
-      const newHistory = [...state.history.slice(0, state.historyIndex + 1), result.url];
+      const newHistory = [...state.history.slice(0, state.historyIndex + 1), searchUrl];
       const newIndex = newHistory.length - 1;
       
       set({
-        currentUrl: result.url,
-        currentTitle: result.title,
-        currentHtml: result.html,
+        currentUrl: searchUrl,
+        currentTitle: `Search: ${query}`,
         history: newHistory,
         historyIndex: newIndex,
         isLoading: false,
@@ -200,7 +216,12 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
         canGoForward: false,
       });
       
-      await get().loadHistory();
+      try {
+        await BrowserService.addHistoryEntry(searchUrl, `Search: ${query}`);
+        await get().loadHistory();
+      } catch (error) {
+        console.error('Failed to add history entry:', error);
+      }
     } catch (error) {
       set({
         isLoading: false,

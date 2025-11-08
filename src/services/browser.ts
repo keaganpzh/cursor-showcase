@@ -1,11 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export interface NavigateResponse {
-  html: string;
-  title: string;
-  url: string;
-}
-
 export interface Bookmark {
   id: number;
   title: string;
@@ -21,36 +15,7 @@ export interface HistoryEntry {
   visitedAt: string;
 }
 
-function normalizeUrl(url: string): string {
-  const trimmed = url.trim();
-  if (!trimmed) return '';
-  
-  if (!trimmed.match(/^https?:\/\//i)) {
-    if (trimmed.includes('.') && !trimmed.includes(' ')) {
-      return `https://${trimmed}`;
-    }
-  }
-  
-  return trimmed;
-}
-
 export const BrowserService = {
-  async navigate(url: string): Promise<NavigateResponse> {
-    const normalizedUrl = normalizeUrl(url);
-    const response = await fetch(`${API_BASE_URL}/api/browser/navigate?url=${encodeURIComponent(normalizedUrl)}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Failed to navigate' }));
-      throw new Error(error.detail || 'Failed to navigate');
-    }
-    
-    return response.json();
-  },
 
   async getBookmarks(): Promise<Bookmark[]> {
     const response = await fetch(`${API_BASE_URL}/api/browser/bookmarks`);
@@ -105,14 +70,18 @@ export const BrowserService = {
     }
   },
 
-  async search(query: string): Promise<NavigateResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/browser/search?query=${encodeURIComponent(query)}`, {
-      method: 'GET',
+  async addHistoryEntry(url: string, title: string): Promise<HistoryEntry> {
+    const response = await fetch(`${API_BASE_URL}/api/browser/history`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url, title }),
     });
     
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Failed to search' }));
-      throw new Error(error.detail || 'Failed to search');
+      const error = await response.json().catch(() => ({ detail: 'Failed to add history entry' }));
+      throw new Error(error.detail || 'Failed to add history entry');
     }
     
     return response.json();
