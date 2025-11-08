@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useBrowserStore } from '../../stores/browserStore';
+import { AiOutlineGlobal } from 'react-icons/ai';
 
 export default function Browser() {
   const {
@@ -281,7 +282,9 @@ export default function Browser() {
                       onClick={() => handleBookmarkClick(bookmark.url)}
                       className="w-full text-left p-2 hover:bg-gray-50 flex items-center gap-2 transition-colors"
                     >
-                      <span className="text-xs">{bookmark.favicon || '🌐'}</span>
+                      <span className="text-xs flex items-center">
+                        {bookmark.favicon || <AiOutlineGlobal />}
+                      </span>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate" style={{ color: '#1d1d1f' }}>{bookmark.title}</div>
                         <div className="text-xs text-gray-500 truncate">{bookmark.url}</div>
@@ -408,7 +411,9 @@ export default function Browser() {
             }}
           >
             <div className="text-center">
-              <div className="text-4xl mb-3 animate-spin">🌐</div>
+              <div className="text-4xl mb-3 animate-spin flex items-center justify-center">
+                <AiOutlineGlobal />
+              </div>
               <div className="text-sm font-medium" style={{ color: '#1d1d1f' }}>Loading...</div>
             </div>
           </div>
@@ -417,7 +422,9 @@ export default function Browser() {
         {!currentUrl && !isLoading && !error && (
           <div className="h-full flex items-center justify-center p-8">
             <div className="text-center max-w-md">
-              <div className="text-6xl mb-6 filter drop-shadow-sm">🌐</div>
+              <div className="text-6xl mb-6 filter drop-shadow-sm flex items-center justify-center">
+                <AiOutlineGlobal />
+              </div>
               <h2 className="text-3xl font-semibold mb-3" style={{ color: '#1d1d1f' }}>Welcome to Browser</h2>
               <p className="text-sm mb-6" style={{ color: '#666' }}>
                 Enter a URL or search query to get started

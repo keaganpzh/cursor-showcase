@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useFileSystemStore } from '../../stores';
 import { FileSystemNode } from '../../types';
+import { AiFillFolder, AiFillFile } from 'react-icons/ai';
 
 export default function Finder() {
   const { nodes, getChildren, getNode, createNode, deleteNode, renameNode, currentPath, navigateTo } = useFileSystemStore();
@@ -193,8 +194,12 @@ export default function Finder() {
               onClick={() => setSelectedId(node.id)}
               onDoubleClick={() => handleDoubleClick(node)}
             >
-              <div className="text-5xl mb-2 filter drop-shadow-sm">
-                {node.type === 'folder' ? '📁' : '📄'}
+              <div className="text-5xl mb-2 filter drop-shadow-sm flex items-center justify-center">
+                {node.type === 'folder' ? (
+                  <AiFillFolder className="text-blue-500" />
+                ) : (
+                  <AiFillFile className="text-gray-600" />
+                )}
               </div>
               {renamingId === node.id ? (
                 <input
