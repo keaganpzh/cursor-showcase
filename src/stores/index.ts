@@ -45,10 +45,18 @@ export const useAppStore = create<AppStore>((set) => ({
     set((state) => {
       const newZIndex = state.nextZIndex + 1;
       const defaultSize = app?.defaultSize || { width: 800, height: 600 };
+      
+      // Calculate center position
+      // Account for menu bar (24px) and ensure window is centered
+      const menuBarHeight = 24;
+      const centerX = (window.innerWidth - defaultSize.width) / 2;
+      const centerY = (window.innerHeight - defaultSize.height - menuBarHeight) / 2 + menuBarHeight;
+      
       const defaultPosition = app?.defaultPosition || { 
-        x: Math.random() * 200 + 100, 
-        y: Math.random() * 100 + 100 
+        x: Math.max(0, centerX), // Ensure window doesn't go off-screen
+        y: Math.max(menuBarHeight, centerY) // Ensure window is below menu bar
       };
+      
       const newWindow: WindowState = {
         id: `${appId}-${Date.now()}`,
         appId,
