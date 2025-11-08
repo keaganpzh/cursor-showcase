@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useBrowserStore } from '../../stores/browserStore';
 import { AiOutlineGlobal } from 'react-icons/ai';
 
@@ -32,6 +32,7 @@ export default function Browser() {
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -43,8 +44,27 @@ export default function Browser() {
     setUrlInput(currentUrl);
     if (currentUrl) {
       setIframeLoading(true);
+      setLoadingProgress(10);
+      
+      // Simulate loading progress
+      const progressInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+      
+      return () => {
+        clearInterval(progressInterval);
+      };
+    } else {
+      setLoadingProgress(0);
     }
   }, [currentUrl]);
+
 
   const handleNavigate = async () => {
     const trimmed = urlInput.trim();
@@ -92,7 +112,110 @@ export default function Browser() {
 
   const handleIframeLoad = () => {
     setIframeLoading(false);
+    setLoadingProgress(100);
+    // Reset progress bar after a short delay
+    setTimeout(() => {
+      setLoadingProgress(0);
+    }, 300);
   };
+
+  const handleRefresh = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const isHardRefresh = e.shiftKey || e.metaKey || e.ctrlKey;
+    
+    if (!currentUrl) return;
+    
+    if (iframeRef.current) {
+      setIframeLoading(true);
+      setLoadingProgress(10);
+      
+      // Build the proxy URL
+      const proxyUrl = `${API_BASE_URL}/api/browser/proxy?url=${encodeURIComponent(currentUrl)}`;
+      
+      // Simulate progress
+      let progressInterval: ReturnType<typeof setInterval> | null = null;
+      progressInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 90) {
+            if (progressInterval) {
+              clearInterval(progressInterval);
+            }
+            return prev;
+          }
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+      
+      // Cleanup function
+      const cleanup = () => {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+      };
+      
+      if (isHardRefresh) {
+        // Hard refresh: bypass cache by adding timestamp to proxy URL
+        iframeRef.current.src = `${proxyUrl}&_hard_refresh=${Date.now()}`;
+        iframeRef.current.addEventListener('load', cleanup, { once: true });
+      } else {
+        // Normal refresh: try to reload iframe, fallback to updating src
+        try {
+          // Since we're proxying through our backend, the iframe should be same-origin
+          // Try to reload the iframe's content window
+          if (iframeRef.current.contentWindow && iframeRef.current.contentWindow.location) {
+            iframeRef.current.contentWindow.location.reload();
+            iframeRef.current.addEventListener('load', cleanup, { once: true });
+          } else {
+            // Fallback: update src (triggers reload)
+            iframeRef.current.src = '';
+            // Use setTimeout to ensure the src clearing takes effect
+            setTimeout(() => {
+              if (iframeRef.current) {
+                iframeRef.current.src = proxyUrl;
+                iframeRef.current.addEventListener('load', cleanup, { once: true });
+              }
+            }, 0);
+          }
+        } catch (error) {
+          // Cross-origin or other error - fallback to updating src
+          iframeRef.current.src = '';
+          setTimeout(() => {
+            if (iframeRef.current) {
+              iframeRef.current.src = proxyUrl;
+              iframeRef.current.addEventListener('load', cleanup, { once: true });
+            }
+          }, 0);
+        }
+      }
+    } else {
+      // Fallback: use the store's refresh method
+      refresh();
+    }
+  }, [currentUrl, refresh]);
+
+  // Keyboard shortcuts for refresh (F5 and Ctrl/Cmd+R)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // F5 or Ctrl/Cmd+R for refresh
+      if (e.key === 'F5' || ((e.metaKey || e.ctrlKey) && e.key === 'r')) {
+        if (currentUrl && !isLoading) {
+          e.preventDefault();
+          const syntheticEvent = {
+            preventDefault: () => {},
+            shiftKey: e.shiftKey,
+            metaKey: e.metaKey,
+            ctrlKey: e.ctrlKey,
+          } as React.MouseEvent;
+          handleRefresh(syntheticEvent);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentUrl, isLoading, handleRefresh]);
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -150,33 +273,53 @@ export default function Browser() {
           →
         </button>
         <button
-          onClick={refresh}
-          disabled={isLoading}
-          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={handleRefresh}
+          disabled={isLoading || !currentUrl}
+          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed relative"
           style={{
-            background: isLoading ? 'rgba(0, 0, 0, 0.05)' : '#007aff',
-            color: isLoading ? '#666' : 'white',
+            background: isLoading || !currentUrl ? 'rgba(0, 0, 0, 0.05)' : '#007aff',
+            color: isLoading || !currentUrl ? '#666' : 'white',
             border: '0.5px solid rgba(0, 0, 0, 0.1)',
           }}
           onMouseEnter={(e) => {
-            if (!isLoading) {
+            if (!isLoading && currentUrl) {
               e.currentTarget.style.background = '#0051d5';
             }
           }}
           onMouseLeave={(e) => {
-            if (!isLoading) {
+            if (!isLoading && currentUrl) {
               e.currentTarget.style.background = '#007aff';
             }
           }}
-          title="Refresh"
+          title="Refresh (Hold Shift for hard refresh)"
         >
           ↻
         </button>
         
-        <div className="flex-1 flex items-center gap-2 rounded-md px-3 py-1.5" style={{
+        <div className="flex-1 flex items-center gap-2 rounded-md px-3 py-1.5 relative" style={{
           background: 'white',
           border: '0.5px solid rgba(0, 0, 0, 0.1)',
         }}>
+          {(isLoading || iframeLoading) && (
+            <div 
+              className="absolute left-3"
+              style={{
+                top: '50%',
+                transform: 'translateY(-50%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <div 
+                className="w-3 h-3 border-2 border-transparent border-t-blue-500 rounded-full"
+                style={{
+                  borderTopColor: '#007aff',
+                  animation: 'spin 1s linear infinite',
+                }}
+              />
+            </div>
+          )}
           <input
             type="text"
             value={urlInput}
@@ -184,7 +327,11 @@ export default function Browser() {
             onKeyPress={handleKeyPress}
             placeholder="Enter URL or search query"
             className="flex-1 outline-none text-sm bg-transparent"
-            style={{ color: '#1d1d1f' }}
+            style={{ 
+              color: '#1d1d1f',
+              paddingLeft: (isLoading || iframeLoading) ? '24px' : '0',
+              lineHeight: '1.5',
+            }}
           />
           <button
             onClick={handleNavigate}
@@ -384,6 +531,26 @@ export default function Browser() {
       </div>
 
       <div className="flex-1 relative overflow-hidden" style={{ background: '#f5f5f7' }}>
+        {/* Loading Progress Bar */}
+        {(isLoading || iframeLoading) && loadingProgress > 0 && (
+          <div 
+            className="absolute top-0 left-0 right-0 h-0.5 z-30 transition-opacity duration-200"
+            style={{
+              background: 'linear-gradient(to right, #007aff, #0051d5)',
+              opacity: loadingProgress > 0 ? 1 : 0,
+            }}
+          >
+            <div
+              className="h-full transition-all duration-300 ease-out"
+              style={{
+                width: `${Math.min(loadingProgress, 100)}%`,
+                background: 'linear-gradient(to right, #007aff, #34c759)',
+                boxShadow: '0 0 10px rgba(0, 122, 255, 0.5)',
+              }}
+            />
+          </div>
+        )}
+        
         {error && (
           <div 
             className="absolute top-0 left-0 right-0 border-b p-3 text-sm z-10 flex items-center justify-between"
