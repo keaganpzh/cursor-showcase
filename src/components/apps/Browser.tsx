@@ -30,7 +30,10 @@ export default function Browser() {
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(false);
+  const [iframeBlocked, setIframeBlocked] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const loadTimeoutRef = useRef<number | null>(null);
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     loadBookmarks();
@@ -41,6 +44,28 @@ export default function Browser() {
     setUrlInput(currentUrl);
     if (currentUrl) {
       setIframeLoading(true);
+      setIframeBlocked(false);
+      loadingRef.current = true;
+      
+      // Set a timeout to detect if iframe is blocked (if it doesn't load within 3 seconds)
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current);
+      }
+      
+      loadTimeoutRef.current = setTimeout(() => {
+        // Check if iframe still hasn't loaded
+        if (loadingRef.current) {
+          setIframeBlocked(true);
+          setIframeLoading(false);
+          loadingRef.current = false;
+        }
+      }, 3000);
+      
+      return () => {
+        if (loadTimeoutRef.current) {
+          clearTimeout(loadTimeoutRef.current);
+        }
+      };
     }
   }, [currentUrl]);
 
@@ -90,6 +115,26 @@ export default function Browser() {
 
   const handleIframeLoad = () => {
     setIframeLoading(false);
+    setIframeBlocked(false);
+    loadingRef.current = false;
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+    }
+  };
+
+  const handleIframeError = () => {
+    setIframeLoading(false);
+    setIframeBlocked(true);
+    loadingRef.current = false;
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+    }
+  };
+
+  const handleOpenInNewTab = () => {
+    if (currentUrl) {
+      window.open(currentUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -402,7 +447,7 @@ export default function Browser() {
           </div>
         )}
 
-        {(isLoading || iframeLoading) && (
+        {(isLoading || iframeLoading) && !iframeBlocked && (
           <div 
             className="absolute inset-0 flex items-center justify-center z-20"
             style={{
@@ -415,6 +460,63 @@ export default function Browser() {
                 <AiOutlineGlobal />
               </div>
               <div className="text-sm font-medium" style={{ color: '#1d1d1f' }}>Loading...</div>
+            </div>
+          </div>
+        )}
+
+        {iframeBlocked && currentUrl && (
+          <div className="h-full flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <div className="text-6xl mb-6 flex items-center justify-center" style={{ color: '#ff9500' }}>
+                🚫
+              </div>
+              <h2 className="text-2xl font-semibold mb-3" style={{ color: '#1d1d1f' }}>
+                This page cannot be displayed
+              </h2>
+              <p className="text-sm mb-6" style={{ color: '#666' }}>
+                This website blocks embedding in iframes for security reasons. This is a security feature set by the website owner.
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <button
+                  onClick={handleOpenInNewTab}
+                  className="px-5 py-2.5 text-sm font-medium text-white rounded-md transition-all duration-150"
+                  style={{
+                    background: '#007aff',
+                    border: '0.5px solid rgba(0, 0, 0, 0.1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#0051d5';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#007aff';
+                  }}
+                >
+                  Open in New Tab
+                </button>
+                <button
+                  onClick={() => {
+                    setIframeBlocked(false);
+                    setError(null);
+                  }}
+                  className="px-5 py-2.5 text-sm font-medium rounded-md transition-all duration-150"
+                  style={{
+                    background: 'white',
+                    color: '#666',
+                    border: '0.5px solid rgba(0, 0, 0, 0.1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f5f5f7';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                  }}
+                >
+                  Try Again
+                </button>
+              </div>
+              <p className="text-xs mt-4" style={{ color: '#999' }}>
+                URL: {currentUrl}
+              </p>
             </div>
           </div>
         )}
@@ -467,13 +569,14 @@ export default function Browser() {
           </div>
         )}
 
-        {currentUrl && (
+        {currentUrl && !iframeBlocked && (
           <iframe
             ref={iframeRef}
             src={currentUrl}
             className="w-full h-full border-0"
             title={currentTitle || currentUrl}
             onLoad={handleIframeLoad}
+            onError={handleIframeError}
             sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-top-navigation"
           />
         )}

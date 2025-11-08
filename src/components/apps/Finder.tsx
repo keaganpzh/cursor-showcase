@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useFileSystemStore } from '../../stores';
+import { useAppStore } from '../../stores';
 import { FileSystemNode } from '../../types';
 import { AiFillFolder, AiFillFile } from 'react-icons/ai';
 
 export default function Finder() {
   const { nodes, getChildren, getNode, createNode, deleteNode, renameNode, currentPath, navigateTo } = useFileSystemStore();
+  const { addWindow } = useAppStore();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
@@ -24,7 +26,6 @@ export default function Finder() {
     if (node.type === 'folder') {
       navigateTo([...currentPath, node.id]);
     } else {
-      const { addWindow } = require('../../stores').useAppStore.getState();
       addWindow('texteditor', node.name);
     }
   };

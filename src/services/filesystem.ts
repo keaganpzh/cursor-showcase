@@ -99,6 +99,13 @@ export const FileSystemService = {
   },
 
   async updateFileContent(id: string, content: string): Promise<void> {
+    if (!id || typeof id !== 'string') {
+      throw new Error('Invalid file ID provided');
+    }
+    const node = await db.nodes.get(id);
+    if (!node) {
+      throw new Error(`File with id ${id} not found`);
+    }
     await db.nodes.update(id, {
       content,
       modifiedAt: Date.now(),

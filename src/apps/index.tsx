@@ -4,7 +4,9 @@ import TextEditor from '../components/apps/TextEditor';
 import Terminal from '../components/apps/Terminal';
 import Settings from '../components/apps/Settings';
 import Browser from '../components/apps/Browser';
-import { AiFillFolder, AiFillEdit, AiFillCode, AiFillSetting, AiOutlineGlobal } from 'react-icons/ai';
+import Notes from '../components/apps/Notes';
+import AppStore from '../components/apps/AppStore';
+import { AiFillFolder, AiFillEdit, AiFillCode, AiFillSetting, AiOutlineGlobal, AiOutlineFileText, AiOutlineShopping } from 'react-icons/ai';
 
 export const registerApps = (registerApp: (app: App) => void) => {
   registerApp({
@@ -20,6 +22,14 @@ export const registerApps = (registerApp: (app: App) => void) => {
     name: 'Text Editor',
     icon: <AiFillEdit className="text-2xl" />,
     component: TextEditor,
+    defaultSize: { width: 800, height: 600 },
+  });
+
+  registerApp({
+    id: 'notes',
+    name: 'Notes',
+    icon: <AiOutlineFileText className="text-2xl" />,
+    component: Notes,
     defaultSize: { width: 800, height: 600 },
   });
 
@@ -44,6 +54,14 @@ export const registerApps = (registerApp: (app: App) => void) => {
     name: 'Browser',
     icon: <AiOutlineGlobal className="text-2xl" />,
     component: Browser,
+    defaultSize: { width: 1000, height: 700 },
+  });
+
+  registerApp({
+    id: 'appstore',
+    name: 'App Store',
+    icon: <AiOutlineShopping className="text-2xl" />,
+    component: AppStore,
     defaultSize: { width: 1000, height: 700 },
   });
 };

@@ -61,7 +61,7 @@ export default function Window({ window: windowState }: WindowProps) {
       minWidth={400}
       minHeight={300}
       bounds="parent"
-      disableResizing={windowState.maximized}
+      enableResizing={!windowState.maximized}
       style={{ zIndex: windowState.zIndex }}
       className="window-container"
     >

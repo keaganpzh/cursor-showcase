@@ -3,12 +3,17 @@ import { useFileSystemStore } from '../../stores';
 import { useAppStore } from '../../stores';
 
 export default function TextEditor() {
-  const { nodes, getNode, updateFileContent, createNode } = useFileSystemStore();
+  const { nodes, getNode, updateFileContent, createNode, loadNodes } = useFileSystemStore();
   const { activeWindowId, windows } = useAppStore();
   const [content, setContent] = useState('');
   const [fileName, setFileName] = useState('Untitled');
   const [fileId, setFileId] = useState<string | null>(null);
   const [saved, setSaved] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadNodes();
+  }, [loadNodes]);
 
   useEffect(() => {
     const activeWindow = windows.find(w => w.id === activeWindowId);
@@ -19,29 +24,58 @@ export default function TextEditor() {
         setFileName(file.name);
         setContent(file.content || '');
         setSaved(true);
+      } else {
+        setFileId(null);
+        setFileName('Untitled');
+        setContent('');
+        setSaved(true);
       }
+    } else {
+      setFileId(null);
+      setFileName('Untitled');
+      setContent('');
+      setSaved(true);
     }
   }, [activeWindowId, windows, nodes]);
 
   const handleSave = async () => {
     if (fileId) {
-      await updateFileContent(fileId, content);
-      setSaved(true);
+      try {
+        await updateFileContent(fileId, content);
+        setSaved(true);
+      } catch (error) {
+        console.error('Failed to save file:', error);
+        setError('Failed to save file. Please try again.');
+      }
     } else {
       const name = prompt('File name:', fileName);
-      if (name) {
-        const homeFolder = nodes.find(n => n.id === 'home');
-        const newFileId = await createNode(name, 'file', homeFolder?.id || null);
-        await updateFileContent(newFileId, content);
-        setFileId(newFileId);
-        setFileName(name);
-        setSaved(true);
+      if (name && name.trim()) {
+        try {
+          const homeFolder = nodes.find(n => n.id === 'home');
+          const parentId = homeFolder?.id || null;
+          const newFileId = await createNode(name.trim(), 'file', parentId);
+          if (newFileId) {
+            await updateFileContent(newFileId, content);
+            setFileId(newFileId);
+            setFileName(name.trim());
+            setSaved(true);
+          }
+        } catch (error) {
+          console.error('Failed to create file:', error);
+          alert('Failed to create file. Please try again.');
+        }
       }
     }
   };
 
   return (
     <div className="h-full flex flex-col bg-white">
+      {error && (
+        <div className="p-2 bg-red-50 border-b border-red-200 text-xs text-red-600">
+          {error}
+          <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
+        </div>
+      )}
       <div 
         className="border-b p-3 flex items-center justify-between"
         style={{
