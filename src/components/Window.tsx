@@ -62,6 +62,7 @@ export default function Window({ window: windowState }: WindowProps) {
       minHeight={300}
       bounds="parent"
       disableResizing={windowState.maximized}
+      dragHandleClassName="window-drag-handle"
       style={{ zIndex: windowState.zIndex }}
       className="window-container"
     >
@@ -76,7 +77,7 @@ export default function Window({ window: windowState }: WindowProps) {
         onClick={() => setActiveWindow(windowState.id)}
       >
         <div 
-          className="h-10 flex items-center justify-between px-4 rounded-t-lg"
+          className="window-drag-handle h-10 flex items-center justify-between px-4 rounded-t-lg cursor-move"
           style={{
             background: isActive 
               ? 'linear-gradient(to bottom, #f6f6f6 0%, #e8e8e8 100%)' 
